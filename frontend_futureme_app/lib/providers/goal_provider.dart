@@ -5,7 +5,6 @@ import '../data/models/goal.dart';
 import '../data/models/user_profile.dart';
 import '../data/services/api_client.dart';
 import '../data/services/database_service.dart';
-import '../data/services/notification_service.dart';
 import 'user_provider.dart';
 
 class GoalProvider extends ChangeNotifier {
@@ -26,8 +25,6 @@ class GoalProvider extends ChangeNotifier {
     final dbService = DatabaseService();
     await dbService.insertGoal(goal);
     await loadGoals();
-    final notificationService = NotificationService();
-    await notificationService.scheduleNotification(goal.id ?? 0, 'Goal Reminder', goal.description, goal.targetDate);
     final profile = Provider.of<UserProvider>(context, listen: false).profile;
     final apiClient = ApiClient();
     await apiClient.callAiGoal({
