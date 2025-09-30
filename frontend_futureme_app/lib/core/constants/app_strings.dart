@@ -20,4 +20,5 @@ class AppStrings {
   static const String errorApi = 'Gagal menghubungi AI. Silakan coba lagi.';
   static const String loading = 'Memproses...';
   static const String success = 'Berhasil disimpan!';
+  static const String send = 'Kirim';
 }

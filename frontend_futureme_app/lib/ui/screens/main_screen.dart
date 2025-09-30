@@ -1,9 +1,12 @@
-// Layar utama dengan bottom navigation bar modern, animasi transisi halus, dan 4 tab (Home, Financial, Goal, Profile).
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_text_styles.dart';
+import '../../providers/ai_chat_provider.dart';
+import '../../providers/user_provider.dart';
 import 'home_screen.dart';
+import 'ai_chat_screen.dart';
 import 'financial_screen.dart';
-import 'goal_screen.dart';
 import 'profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -20,9 +23,9 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    FinancialScreen(),
-    GoalScreen(),
-    ProfileScreen(),
+    const AiChatScreen(),
+    const FinancialScreen(),
+    const ProfileScreen(),
   ];
 
   @override
@@ -53,54 +56,60 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: _screens[_selectedIndex],
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+      ],
+      child: Scaffold(
+        body: FadeTransition(
+          opacity: _fadeAnimation,
+          child: _screens[_selectedIndex],
         ),
-        child: BottomNavigationBar(
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Beranda',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet_outlined),
-              activeIcon: Icon(Icons.account_balance_wallet),
-              label: 'Keuangan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.flag_outlined),
-              activeIcon: Icon(Icons.flag),
-              label: 'Tujuan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profil',
-            ),
-          ],
-          currentIndex: _selectedIndex,
-          selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary,
-          backgroundColor: Colors.white,
-          type: BottomNavigationBarType.fixed,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400),
-          onTap: _onItemTapped,
-          elevation: 0,
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: AppColors.cardBackground,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: 'Beranda',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.chat_bubble_outline),
+                activeIcon: Icon(Icons.chat_bubble),
+                label: 'Chat',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                activeIcon: Icon(Icons.account_balance_wallet),
+                label: 'Keuangan',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profil',
+              ),
+            ],
+            currentIndex: _selectedIndex,
+            selectedItemColor: AppColors.primary,
+            unselectedItemColor: AppColors.textSecondary,
+            backgroundColor: AppColors.cardBackground,
+            type: BottomNavigationBarType.fixed,
+            selectedLabelStyle: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+            unselectedLabelStyle: AppTextStyles.body.copyWith(fontWeight: FontWeight.w400),
+            onTap: _onItemTapped,
+            elevation: 0,
+          ),
         ),
       ),
     );

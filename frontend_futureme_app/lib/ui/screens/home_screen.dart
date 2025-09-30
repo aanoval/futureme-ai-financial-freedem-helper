@@ -1,16 +1,13 @@
-// Layar beranda dengan integrasi fitur Chat dan Mood, desain modern, dan animasi halus.
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../core/utils/helpers.dart';
-import '../../providers/ai_chat_provider.dart';
-import '../../providers/mood_provider.dart';
-import '../../data/models/mood_entry.dart';
 import '../../providers/user_provider.dart';
 import '../widgets/custom_button.dart';
-import '../widgets/custom_textfield.dart';
+import 'mood_screen.dart';
+import 'goal_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,9 +17,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
-  final TextEditingController _chatController = TextEditingController();
-  final TextEditingController _moodNoteController = TextEditingController();
-  String _selectedMood = 'senang';
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
 
@@ -31,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 600),
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
@@ -42,18 +36,36 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   @override
   void dispose() {
     _controller.dispose();
-    _chatController.dispose();
-    _moodNoteController.dispose();
     super.dispose();
+  }
+
+  // Helper function to safely calculate progress
+  double safeCalculateProgress(int age, int targetFreedomAge) {
+    if (age <= 0 || targetFreedomAge <= 0 || age >= targetFreedomAge) {
+      return 0.0;
+    }
+    return age / targetFreedomAge;
+  }
+
+  // Helper function to safely calculate years to freedom
+  String safeCalculateYearsToFreedom(int age, int targetFreedomAge) {
+    if (age <= 0 || targetFreedomAge <= 0 || age >= targetFreedomAge) {
+      return 'N/A';
+    }
+    return (targetFreedomAge - age).toString();
   }
 
   @override
   Widget build(BuildContext context) {
-    final chatProvider = context.watch<ChatProvider>();
-    final moodProvider = context.watch<MoodProvider>();
     final profile = context.watch<UserProvider>().profile;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Beranda', style: AppTextStyles.heading2.copyWith(color: AppColors.textPrimary)),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -62,186 +74,201 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Profil
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.backgroundSecondary,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+                // Kartu Profil Interaktif
+                Card(
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary.withOpacity(0.1), AppColors.backgroundSecondary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Selamat Datang, ${profile.name}!',
-                        style: AppTextStyles.heading1,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Umur: ${profile.age} | Target Kebebasan Finansial: ${profile.targetFreedomAge}',
-                        style: AppTextStyles.body,
-                      ),
-                      Text(
-                        'Tahun Tersisa: ${calculateYearsToFreedom(profile.age, profile.targetFreedomAge)}',
-                        style: AppTextStyles.body.copyWith(color: AppColors.primary),
-                      ),
-                    ],
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 30,
+                              backgroundColor: AppColors.primary,
+                              child: Text(
+                                profile.name.isNotEmpty ? profile.name[0] : '?',
+                                style: AppTextStyles.heading1.copyWith(color: Colors.white),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Hai, ${profile.name.isNotEmpty ? profile.name : "Pengguna"}!',
+                                    style: AppTextStyles.heading1.copyWith(color: AppColors.textPrimary),
+                                  ),
+                                  Text(
+                                    'Menuju Kebebasan Finansial',
+                                    style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Umur Saat Ini', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                                Text('${profile.age > 0 ? profile.age : "N/A"} Tahun', style: AppTextStyles.heading2.copyWith(color: AppColors.textPrimary)),
+                              ],
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Target Bebas Finansial', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                                Text('${profile.targetFreedomAge > 0 ? profile.targetFreedomAge : "N/A"} Tahun', style: AppTextStyles.heading2.copyWith(color: AppColors.textPrimary)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        LinearProgressIndicator(
+                          value: safeCalculateProgress(profile.age, profile.targetFreedomAge),
+                          backgroundColor: AppColors.textSecondary.withOpacity(0.2),
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                          minHeight: 8,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${safeCalculateYearsToFreedom(profile.age, profile.targetFreedomAge)} Tahun Tersisa',
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
 
-                // Section Chatbot
-                Text('Chat dengan AI', style: AppTextStyles.heading2),
-                const SizedBox(height: 12),
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ListView.builder(
-                    itemCount: chatProvider.chatHistory.length,
-                    itemBuilder: (ctx, i) {
-                      final msg = chatProvider.chatHistory[i];
-                      final isUser = msg['user'] != null;
-                      return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isUser ? AppColors.primary.withOpacity(0.1) : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-                          children: [
-                            if (!isUser) const Icon(Icons.android, color: AppColors.primary, size: 20),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                msg['user'] ?? msg['ai'] ?? '',
-                                style: AppTextStyles.body,
-                              ),
-                            ),
-                            if (isUser) const SizedBox(width: 8),
-                            if (isUser) const Icon(Icons.person, color: AppColors.primary, size: 20),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                // Ringkasan Keuangan
+                Text('Ringkasan Keuangan', style: AppTextStyles.heading2.copyWith(color: AppColors.textPrimary)),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
-                      child: CustomTextField(
-                        hint: 'Ketik pesan...',
-                        controller: _chatController,
-                        prefixIcon: Icons.chat_bubble_outline,
+                      child: Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardBackground,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.1),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Text('Tabungan', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                              Text(
+                                formatCurrency(profile.savings),
+                                style: AppTextStyles.heading2.copyWith(color: AppColors.primary),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    CustomButton(
-                      text: 'Kirim',
-                      onPressed: () {
-                        if (_chatController.text.isNotEmpty) {
-                          chatProvider.sendMessage(context, _chatController.text);
-                          _chatController.clear();
-                        }
-                      },
-                      backgroundColor: AppColors.primary,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.cardBackground,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withOpacity(0.1),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Text('Hutang', style: AppTextStyles.body.copyWith(color: AppColors.textSecondary)),
+                              Text(
+                                formatCurrency(profile.debts),
+                                style: AppTextStyles.heading2.copyWith(color: AppColors.error),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                // Section Mood Tracker
-                Text('Catat Mood Anda', style: AppTextStyles.heading2),
+                // Tombol Fitur Utama
+                Text('Fitur Utama', style: AppTextStyles.heading2.copyWith(color: AppColors.textPrimary)),
                 const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: _selectedMood,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: AppColors.backgroundSecondary,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  items: ['senang', 'sedih', 'marah', 'netral']
-                      .map((e) => DropdownMenuItem(value: e, child: Text(e.capitalize())))
-                      .toList(),
-                  onChanged: (val) => setState(() => _selectedMood = val!),
-                ),
-                const SizedBox(height: 12),
-                CustomTextField(
-                  hint: 'Catatan (opsional)',
-                  controller: _moodNoteController,
-                  prefixIcon: Icons.note_outlined,
-                ),
-                CustomButton(
-                  text: 'Simpan Mood',
-                  onPressed: () {
-                    final entry = MoodEntry(
-                      mood: _selectedMood,
-                      date: DateTime.now(),
-                      note: _moodNoteController.text,
-                    );
-                    moodProvider.addMood(context, entry);
-                    _moodNoteController.clear();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Mood disimpan!')),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  height: 150,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 6,
-                        offset: const Offset(0, 2),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Catat Mood',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const MoodScreen()),
+                          );
+                        },
+                        backgroundColor: AppColors.primary,
+                        textColor: Colors.white,
                       ),
-                    ],
-                  ),
-                  child: ListView.builder(
-                    itemCount: moodProvider.moods.length,
-                    itemBuilder: (ctx, i) {
-                      final entry = moodProvider.moods[i];
-                      return ListTile(
-                        title: Text(
-                          '${entry.mood.capitalize()} - ${formatDate(entry.date)}',
-                          style: AppTextStyles.body,
-                        ),
-                        subtitle: Text(
-                          entry.aiSuggestion ?? entry.note,
-                          style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-                        ),
-                        leading: Icon(
-                          _getMoodIcon(entry.mood),
-                          color: AppColors.primary,
-                        ),
-                      );
-                    },
-                  ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Tujuan Keuangan',
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const GoalScreen()),
+                          );
+                        },
+                        backgroundColor: AppColors.primary,
+                        textColor: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -249,26 +276,5 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         ),
       ),
     );
-  }
-
-  IconData _getMoodIcon(String mood) {
-    switch (mood.toLowerCase()) {
-      case 'senang':
-        return Icons.sentiment_satisfied;
-      case 'sedih':
-        return Icons.sentiment_dissatisfied;
-      case 'marah':
-        return Icons.sentiment_very_dissatisfied;
-      case 'netral':
-        return Icons.sentiment_neutral;
-      default:
-        return Icons.sentiment_neutral;
-    }
-  }
-}
-
-extension StringExtension on String {
-  String capitalize() {
-    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
