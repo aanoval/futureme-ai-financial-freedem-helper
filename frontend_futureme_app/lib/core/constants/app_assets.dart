@@ -1,10 +1,20 @@
-// Dokumen: Konstanta aset aplikasi seperti gambar dan ikon untuk FutureMe. Gunakan aset built-in atau placeholder untuk desain modern.
+// Dokumen: Konstanta aset aplikasi untuk FutureMe menggunakan ikon built-in Flutter untuk desain modern.
+import 'package:flutter/material.dart';
+
 class AppAssets {
-  static const String logo = 'assets/images/logo.png'; // Ganti dengan aset actual.
-  static const String chatbotIcon = 'assets/icons/chatbot.png';
-  static const String financialIcon = 'assets/icons/financial.png';
-  static const String moodIcon = 'assets/icons/mood.png';
-  static const String goalIcon = 'assets/icons/goal.png';
-  static const String profileIcon = 'assets/icons/profile.png';
-  // Tambahkan aset animasi Lottie jika diintegrasikan nanti untuk UX terbaik.
+  // Menggunakan ikon built-in Flutter untuk semua ikon di aplikasi.
+  static const IconData homeIcon = Icons.home_outlined;
+  static const IconData homeActiveIcon = Icons.home;
+  static const IconData financialIcon = Icons.account_balance_wallet_outlined;
+  static const IconData financialActiveIcon = Icons.account_balance_wallet;
+  static const IconData goalIcon = Icons.flag_outlined;
+  static const IconData goalActiveIcon = Icons.flag;
+  static const IconData profileIcon = Icons.person_outline;
+  static const IconData profileActiveIcon = Icons.person;
+  static const IconData chatIcon = Icons.chat_bubble_outline;
+  static const IconData moodIcon = Icons.sentiment_satisfied;
+
+  // Placeholder untuk animasi Lottie jika diintegrasikan di masa depan.
+  static const String lottieLoading = 'assets/lottie/loading.json'; // Contoh path, belum digunakan.
+  static const String lottieSuccess = 'assets/lottie/success.json'; // Contoh path, belum digunakan.
 }
